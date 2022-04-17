@@ -2,7 +2,8 @@ const express = require("express");
 const async = require("hbs/lib/async");
 const path = require("path");
 const app = express();
-//const hbs = require("hbs");
+const bcrypt = require("bcryptjs");
+
 var bodyParser = require("body-parser");
 
 require("./src/db/connect");
@@ -55,6 +56,7 @@ app.post("/register", (req, res) => {
     gender: req.body.gender,
     password: req.body.password,
   });
+  //here password hashing; middleware.
   registerEmployee
     .save()
     .then(() => {
@@ -72,7 +74,10 @@ app.post("/login", async (req, res) => {
     const password = req.body.password;
     // console.log(`email is ${email} and password is ${password}`);
     const useremail = await Register.findOne({ email: email });
-    if (useremail.password === password) {
+
+    const isMatch = await bcrypt.compare(password, useremail.password);
+
+    if (isMatch) {
       res.sendFile(path.join(__dirname, "public/success.html"));
     } else {
       res.sendFile(path.join(__dirname, "public/loginerror.html"));
